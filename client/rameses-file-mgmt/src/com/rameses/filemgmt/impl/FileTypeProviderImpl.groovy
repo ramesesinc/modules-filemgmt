@@ -1,8 +1,10 @@
+package com.rameses.filemgmt.impl;
+
 import com.rameses.rcp.annotations.*;
-import com.rameses.rcp.common.*;
+import com.rameses.filemgmt.FileManager;
 
-public class FileType {
-
+class FileTypeProviderImpl implements FileManager.FileTypeProvider {
+    
     final def _types = [ 
         [ objid: "jpg",  title: "JPEG Images (*.jpg)", multiselect: true, image: true ],
         [ objid: "png",  title: "PNG Images (*.png)", multiselect: true, image: true ],
@@ -11,10 +13,10 @@ public class FileType {
         [ objid: "docx", title: "Word Document (*.docx)", multiselect: true ]
     ];
 
-    public def getTypes() { return _types; } 
+    public List getTypes() { return _types; } 
 
-    public def getType( name ) { 
-        def sid = name.toString().toLowerCase(); 
+    public Map getType( String name ) { 
+        def sid = name.toLowerCase(); 
         return _types.find{( it.objid == sid )} 
     }
 }

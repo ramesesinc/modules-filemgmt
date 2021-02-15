@@ -52,6 +52,8 @@ public final class FileUploadItem implements FileItem {
     private ConfigFile confFile;  
     private ContentFile contentFile;
     
+    private boolean immediate; 
+    
     private FileUploadItem( File file ) {
         this.folder = file; 
     }
@@ -67,6 +69,10 @@ public final class FileUploadItem implements FileItem {
         return contentFile; 
     }
     
+    public boolean isImmediate() {
+        return immediate; 
+    }
+    
     private void createImpl( Map conf ) throws Exception { 
         verifyFolder();
         confFile = new ConfigFile( folder, ".conf" ); 
@@ -80,6 +86,9 @@ public final class FileUploadItem implements FileItem {
         createTempFile(".tempcopy");
         createTempFile(".ready");
         
+        Object val = conf.get("immediate"); 
+        this.immediate = ( val != null && val.toString().matches("true|1")); 
+
         FileUploadManager.getInstance().getFileHandlers().register( this ); 
     }
     
@@ -132,7 +141,7 @@ public final class FileUploadItem implements FileItem {
         } 
         return null; 
     } 
-    
+
     public void markForRemoval() {
         createTempFile(".forremoval"); 
     }
@@ -194,6 +203,12 @@ public final class FileUploadItem implements FileItem {
         } catch(Throwable t) {
             return false; 
         } 
+    }
+    
+    public void recreateConfigFile( Map conf ) {
+        verifyFolder(); 
+        confFile = new ConfigFile( folder, ".conf" ); 
+        confFile.create( conf ); 
     }
     
 
@@ -634,7 +649,7 @@ public final class FileUploadItem implements FileItem {
 
             FileUploadManager fum = FileUploadManager.getInstance();
             String filelocid = conf.getProperty( CONF_FILE_LOC_ID ); 
-            FileLocationConf fileloc = FileManager.getInstance().getLocationConfs().get( filelocid );
+            FileLocationConf fileloc = FileManager.getInstance().getLocation( filelocid ); 
             if ( fileloc == null ) {
                 System.out.println("[ModeUploadProcess] '"+ filelocid +"' file location config not found for "+ root.getName()); 
                 return STAT_FILE_LOC_CONF_NOT_FOUND; 
@@ -644,6 +659,11 @@ public final class FileUploadItem implements FileItem {
             if ( loctype == null ) {
                 System.out.println("[ModeUploadProcess] '"+ fileloc.getType() +"' file location type not found for "+ root.getName()); 
                 return STAT_FILE_LOC_TYPE_NOT_FOUND; 
+            }
+            
+            Object oloctype = loctype; 
+            if ( oloctype instanceof FileLocationRegistry ) { 
+                ((FileLocationRegistry) oloctype).register( fileloc ); 
             }
             
             String filetype = conf.getProperty( CONF_FILE_TYPE ); 
@@ -709,7 +729,7 @@ public final class FileUploadItem implements FileItem {
             ConfigFile conf = root.getConfigFile().read(); 
             String filelocid = conf.getProperty( CONF_FILE_LOC_ID ); 
             FileUploadManager fum = FileUploadManager.getInstance();
-            FileLocationConf fileloc = FileManager.getInstance().getLocationConfs().get( filelocid );
+            FileLocationConf fileloc = FileManager.getInstance().getLocation( filelocid ); 
             if ( fileloc == null ) {
                 System.out.println("[ModeRemovalProcess] '"+ filelocid +"' file location config not found for "+ root.getName()); 
                 return; 

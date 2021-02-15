@@ -11,17 +11,16 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class FileNewModel  {
         
-    @Script('FileType') 
-    def fileType;
-        
     def info = [:];
     
     def handler;    
     def base64 = new Base64Cipher();
     def _entity = [ objid:'FILE'+ new java.rmi.server.UID(), info: [:]]; 
     
+    def fileTypeProvider = com.rameses.filemgmt.FileManager.instance.fileTypeProvider; 
+    
     def getFileTypes() {
-        return fileType.getTypes(); 
+        return fileTypeProvider.types; 
     } 
     
     def getEntity() { 
@@ -30,7 +29,7 @@ public class FileNewModel  {
     
     def doOk() {
         def fm = com.rameses.filemgmt.FileManager.instance;
-        def fileLocConf = fm.locationConfs.defaultConf;
+        def fileLocConf = fm.defaultLocation;
         if ( fileLocConf == null ) throw new Exception('Please provide a default location conf'); 
 
         def scaler = new ImageScaler();
@@ -52,8 +51,8 @@ public class FileNewModel  {
             m.bytestransferred = data.filesize;
             
             def image = null; 
-            def aaa = fileType.getType( m.filetype );
-            if ( "true".equals( ""+ aaa?.image )) {
+            def aaa = fileTypeProvider.getType( m.filetype );
+            if ( aaa?.image && aaa.image.toString().matches('true|1')) {
                 image = scaler.createThumbnail( data.file );  
             } else {
                 def icon = fm.getFileTypeIcon( m.filetype ); 
@@ -117,11 +116,11 @@ public class FileNewModel  {
             fileChooser.setFileFilter( new FileNameExtensionFilter( filetype.title, filetype.objid ));
         } 
         
-        def fum = com.rameses.filemgmt.FileUploadManager.instance; 
-        def locconf = com.rameses.filemgmt.FileManager.instance.locationConfs.defaultConf; 
+        def locconf = com.rameses.filemgmt.FileManager.instance.defaultLocation;
         if ( !locconf ) throw new Exception('No active location config available'); 
         
-        def tempdir = fum.getTempDir();         
+        def fum = com.rameses.filemgmt.FileUploadManager.instance; 
+        def tempdir = fum.getTempDir(); 
         int opt = fileChooser.showOpenDialog( uploadHandler.binding?.owner ); 
         if ( opt == JFileChooser.APPROVE_OPTION ) { 
             def files = null; 
@@ -143,6 +142,7 @@ public class FileNewModel  {
                 item.source = o.canonicalPath; 
                 item.caption = o.name; 
                 item.file = o;
+                item.immediate = true; 
 
                 def folder = new java.io.File( tempdir, item.fileid ); 
                 def fui = com.rameses.filemgmt.FileUploadItem.create( folder, item ); 

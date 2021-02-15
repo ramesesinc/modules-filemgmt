@@ -187,7 +187,10 @@ public class FileUploadPanel extends XComponentPanel {
         
         public void actionPerformed(ActionEvent e) { 
             if (MsgBox.confirm("You are about to remove "+ cell.getFileName() +". Continue?")) {
+                Map conf = (Map) cell.getUserObject(); 
+                item.recreateConfigFile( conf ); 
                 item.markForRemoval();
+                
                 root.pnlCanvas.remove( cell ); 
                 root.pnlCanvas.revalidate(); 
                 root.pnlCanvas.repaint(); 

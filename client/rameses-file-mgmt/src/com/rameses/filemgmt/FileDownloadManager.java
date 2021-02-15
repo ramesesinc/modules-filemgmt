@@ -6,6 +6,7 @@ package com.rameses.filemgmt;
 
 import com.rameses.io.FileLocTypeProvider;
 import com.rameses.io.FileTransferSession;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -140,6 +141,18 @@ public final class FileDownloadManager {
         }
     }   
     
+    public synchronized DownloadItem doBasicdownload( String fileid, String filetype, long filesize, FileLocationConf fileloc, FileDownloadHandler handler ) {
+        if ( fileid == null || fileid.trim().length() == 0 ) 
+            throw new RuntimeException("fileid parameter is required"); 
+        if ( fileloc == null ) 
+            throw new RuntimeException("filelocid parameter is required"); 
+
+        DownloadItem di = new DownloadItem( fileid, filetype, filesize ); 
+        di.basicDownloadProcess = new BasicDownloadProcess( di, fileloc, handler ); 
+        schedule( di ); 
+        return di; 
+    }
+    
     public synchronized void download( String fileid, String filetype, String filelocid, long filesize, FileDownloadHandler handler ) { 
         if ( fileid == null || fileid.trim().length() == 0 ) 
             throw new RuntimeException("fileid parameter is required"); 
@@ -158,6 +171,12 @@ public final class FileDownloadManager {
     void schedule( DownloadItem item ) { 
         synchronized ( CACHE_LOCKED ) {
             if ( item == null ) return; 
+            
+            if ( item.basicDownloadProcess != null ) {
+                threadPool.submit( item.basicDownloadProcess ); 
+                return; 
+            } 
+            
             if ( !isEnabled() ) return; 
             
             String keyname = item.getName(); 
@@ -294,8 +313,9 @@ public final class FileDownloadManager {
             }
         } 
     }
+
         
-    private class DownloadItem {
+    public class DownloadItem {
         
         FileDownloadManager root = FileDownloadManager.this; 
         
@@ -305,8 +325,14 @@ public final class FileDownloadManager {
         private long filesize; 
         private File basedir;
         
+        private BasicDownloadProcess basicDownloadProcess;
+        
         DownloadItem( String fileid ) { 
             this( fileid, null, null, 0 ); 
+        }
+        
+        DownloadItem( String fileid, String filetype, long filesize ) { 
+            this( fileid, filetype, null, filesize ); 
         }
         
         DownloadItem( String fileid, String filetype, String filelocid, long filesize ) {
@@ -315,11 +341,11 @@ public final class FileDownloadManager {
             this.filelocid = filelocid; 
             this.filesize = filesize; 
         }
-        
-        String getName() { return fileid; } 
-        String getFileType() { return filetype; }
-        String getFileLocId() { return filelocid; } 
-        long getFileSize() { return filesize; } 
+
+        public String getName() { return fileid; } 
+        public String getFileType() { return filetype; }
+        public String getFileLocId() { return filelocid; } 
+        public long getFileSize() { return filesize; } 
         
         File getBaseFolder() { 
             if ( basedir == null ) {
@@ -403,6 +429,13 @@ public final class FileDownloadManager {
             } else {
                 return null; 
             }
+        }
+        
+        public byte[] getContent() {
+            if ( basicDownloadProcess == null ) {
+                return null; 
+            }
+            return basicDownloadProcess.bytes; 
         }
     }
     
@@ -642,7 +675,7 @@ public final class FileDownloadManager {
                 }
                 
                 String filelocid = item.getFileLocId();
-                FileLocationConf conf = fm.getLocationConfs().get( filelocid ); 
+                FileLocationConf conf = fm.getLocation( filelocid ); 
                 if ( conf == null ) 
                     throw new Exception(""+ filelocid +" file location conf does not exist"); 
                 
@@ -702,6 +735,102 @@ public final class FileDownloadManager {
             
             root.fileHandlers.notifyOnCompleted( item.getName() ); 
             root.fileHandlers.unregister( item.getName()); 
+        } 
+    } 
+
+    private class BasicDownloadProcess implements RunProc {
+
+        FileDownloadManager root = FileDownloadManager.this; 
+
+        private DownloadItem item; 
+        private FileLocationConf fileloc;
+        private FileDownloadHandler handler; 
+        
+        private boolean cancelled; 
+        private FileTransferSession sess;
+        
+        private byte[] bytes;
+        
+        BasicDownloadProcess( DownloadItem item, FileLocationConf fileloc, FileDownloadHandler handler ) {
+            this.item = item;
+            this.fileloc = fileloc;
+            this.handler = handler; 
+        }
+
+        public void cancel() {
+            this.cancelled = true; 
+            
+            try {
+                sess.cancel(); 
+            } catch(Throwable t) {
+                //do nothing
+            } finally {
+                sess = null; 
+            }
+        }
+
+        public void run() {
+            if ( cancelled ) return;
+            
+            FileManager fm = FileManager.getInstance();
+            String fileid = item.getName(); 
+            
+            try {
+                Object oloctype = fm.getLocType( fileloc.getType() ); 
+                if ( oloctype == null ) 
+                    throw new Exception("No available file location type provider for "+ fileloc.getType()); 
+                
+                FileLocTypeProvider loctype = (FileLocTypeProvider) oloctype; 
+                if ( oloctype instanceof FileLocationRegistry ) { 
+                    ((FileLocationRegistry) oloctype).register( fileloc ); 
+                } 
+                
+                String filetype = item.getFileType(); 
+                StringBuilder remoteName = new StringBuilder(); 
+                remoteName.append( fileid );
+                if ( filetype != null && filetype.trim().length() > 0 ) {
+                    remoteName.append(".").append( filetype ); 
+                }
+                
+                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                FileTransferSession sess = loctype.createDownloadSession(); 
+                sess.setTargetName( remoteName.toString() ); 
+                sess.setLocationConfigId( fileloc.getName() ); 
+                sess.setOutputStream( baos ); 
+                sess.setHandler(new FileTransferSession.Handler() {
+                    public void ontransfer(long bytesprocessed) { 
+                        ontransfer( item.getFileSize(), bytesprocessed );
+                    }
+                    public void ontransfer(long filesize, long bytesprocessed) {
+                        fireOnTransfer(filesize, bytesprocessed);
+                    }
+                    public void oncomplete() { 
+                        bytes = baos.toByteArray(); 
+                        fireOnComplete(); 
+                    }
+                });
+                sess.run(); 
+
+            } catch(RescheduleException rse) { 
+                //do nothing 
+            } catch(Throwable t) {
+                System.out.println("[BasicDownloadProcess] ("+ fileid +") error caused by " + t.getMessage());
+            } finally {
+                if ( cancelled ) return; 
+            }
+
+            root.detach( item ); 
+        }
+        
+        void fireOnTransfer( long filesize, long bytesprocessed ) { 
+            if ( handler != null ) {
+                handler.onTransfer( item.getName(), filesize, bytesprocessed ); 
+            }
+        }
+        void fireOnComplete() {
+            if ( handler != null ) {
+                handler.onCompleted( item.getName()); 
+            }
         } 
     } 
     

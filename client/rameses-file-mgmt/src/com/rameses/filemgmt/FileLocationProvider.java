@@ -15,4 +15,7 @@ public interface FileLocationProvider {
     
     public List<Map> getLocations();
     
+    public Map getDefaultLocation();
+    
+    public Map getLocation( String locationId );
 }

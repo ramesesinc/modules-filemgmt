@@ -1,8 +1,9 @@
-import com.rameses.rcp.annotations.*;
-import com.rameses.rcp.common.*;
-import com.rameses.filemgmt.*;
+package com.rameses.filemgmt.impl;
 
-public class FileDbProviderImpl implements FileManager.DbProvider {
+import com.rameses.rcp.annotations.*;
+import com.rameses.filemgmt.FileManager;
+
+class FileDbProviderImpl implements FileManager.DbProvider {
     
     @Service('FileUploadService') 
     def fileUploadSvc;
@@ -26,4 +27,5 @@ public class FileDbProviderImpl implements FileManager.DbProvider {
     Map remove( Map params ) { 
         return fileSvc.remove( params ); 
     }
-} 
+
+}

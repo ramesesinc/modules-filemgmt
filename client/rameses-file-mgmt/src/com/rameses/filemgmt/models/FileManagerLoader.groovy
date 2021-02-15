@@ -4,14 +4,9 @@ import com.rameses.rcp.annotations.*;
 import com.rameses.rcp.common.*;
 import com.rameses.osiris2.client.*;
 import com.rameses.osiris2.common.*;
+import com.rameses.filemgmt.impl.*;
 
 public class FileManagerLoader {  
-    
-    @Script('FileDbProviderImpl') 
-    def dbProvider; 
-
-    @Script('FileLocationProviderImpl') 
-    def fileLocationProvider; 
 
     void doStart() {
         def ctx = com.rameses.rcp.framework.ClientContext.currentContext;
@@ -20,8 +15,9 @@ public class FileManagerLoader {
 
         def fm = com.rameses.filemgmt.FileManager.instance; 
         fm.loadFileLocTypeProviders( ctx.classLoader ); 
-        fm.locationProvider = fileLocationProvider; 
-        fm.dbProvider = dbProvider; 
+        fm.fileTypeProvider = ManagedObjects.instance.create( FileTypeProviderImpl.class ); 
+        fm.locationProvider = ManagedObjects.instance.create( FileLocationProviderImpl.class ); 
+        fm.dbProvider = ManagedObjects.instance.create( FileDbProviderImpl.class ); 
         fm.enabled = enabled; 
         fm.start(); 
     } 

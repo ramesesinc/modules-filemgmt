@@ -53,7 +53,7 @@ public final class FileManager {
     private FileLocationConfs fileLocConfs;
     private File tempdir; 
     private Helper helper;
-    
+        
     private FileManager() { 
         this.sessionid = Encoder.MD5.encode( new java.rmi.server.UID().toString());        
         this.enabled = true; 
@@ -145,7 +145,6 @@ public final class FileManager {
     public FileLocationConfs getLocationConfs()  {
         return fileLocConfs; 
     } 
-    
     
     public ImageIcon getFileTypeIcon( String name ) {
         if ( name == null || name.trim().length() == 0) return null; 
@@ -459,5 +458,36 @@ public final class FileManager {
                 return false; 
             } 
         }
+    }
+    
+    public FileLocationConf getDefaultLocation() {
+        Map data = getLocationProvider().getDefaultLocation(); 
+        if ( data == null || data.isEmpty()) 
+            throw new RuntimeException("No active location config available"); 
+        
+        return new FileLocationConf( data ); 
+    }
+    
+    public FileLocationConf getLocation( String locationId ) {
+        Map data = getLocationProvider().getLocation( locationId ); 
+        if ( data == null || data.isEmpty()) {
+            return null; 
+        } 
+        return new FileLocationConf( data ); 
+    }
+
+    
+    public static interface FileTypeProvider {
+        public List getTypes();
+        public Map getType( String name ); 
+    }
+    
+    private FileTypeProvider fileTypeProvider;
+    
+    public FileTypeProvider getFileTypeProvider() {
+        return fileTypeProvider; 
+    }
+    public void setFileTypeProvider( FileTypeProvider fileTypeProvider ) {
+        this.fileTypeProvider = fileTypeProvider; 
     }
 }

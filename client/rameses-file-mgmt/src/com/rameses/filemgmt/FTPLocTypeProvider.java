@@ -9,6 +9,8 @@ import com.rameses.ftp.FtpManager;
 import com.rameses.ftp.FtpSession;
 import com.rameses.io.FileLocTypeProvider;
 import com.rameses.io.FileTransferSession;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 
 /**
  *
@@ -123,7 +125,15 @@ public class FTPLocTypeProvider implements FileLocTypeProvider, FileLocationRegi
             sess = FtpManager.createSession( getLocationConfigId() ); 
             sess.setBufferSize( 100 * 1024 ); 
             sess.setHandler(this);
-            sess.download( getTargetName(), getFile() ); 
+            
+            OutputStream out = getOutputStream(); 
+            if ( out == null ) {
+                sess.download( getTargetName(), getFile() ); 
+            }
+            else if ( out instanceof ByteArrayOutputStream ) {
+                sess.download( getTargetName(), (ByteArrayOutputStream) out ); 
+            }
+            
             disconnect(); 
         } 
         

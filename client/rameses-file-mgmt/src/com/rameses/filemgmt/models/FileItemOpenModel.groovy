@@ -45,6 +45,10 @@ public class FileItemOpenModel  {
     def fileloctype;
     def images = [:];
     
+    def fileManager = com.rameses.filemgmt.FileManager.instance;
+    def downloadManager = com.rameses.filemgmt.FileDownloadManager.instance; 
+    def downloadItem;
+    
     def init() { 
         if ( eventMap != null ) { 
             // hook call back events
@@ -53,25 +57,32 @@ public class FileItemOpenModel  {
         
         loadingStatusMessage = 'Processing...';
         formTitle = 'Form Item Viewer ('+ fileitem.objid +')'; 
+
+        def fileloc = fileManager.getLocation( fileitem.filelocid ); 
+        if ( !fileloc ) {
+            loadingStatusMessage = "'"+ fileitem.filelocid +"' file location config not found";
+            return null; 
+        }
         
-        fileloctype = fileitem.fileloc.loctype;
+        fileloctype = fileloc.type;
         if ( fileloctype == 'file' ) {
             loadImage(); 
             return 'view'; 
         }
         
-        def fdm = com.rameses.filemgmt.FileDownloadManager.instance; 
-        def stat = fdm.getStatus( fileitem.objid ); 
-        if ( stat == 'completed') {
-            loadImage();
-            return 'view'; 
-        }
+        downloadItem = downloadManager.doBasicdownload( fileitem.objid, fileitem.filetype, fileitem.filesize, fileloc, filehandler ); 
         
-        if ( stat == null ) {
-            fdm.download( fileitem.objid, fileitem.filetype, fileitem.filelocid, fileitem.filesize, filehandler );         
-        } else {
-            fdm.fileHandlers.add( fileitem.objid, filehandler ); 
-        }
+//        def stat = downloadManager.getStatus( fileitem.objid ); 
+//        if ( stat == 'completed') {
+//            loadImage();
+//            return 'view'; 
+//        }
+//        
+//        if ( stat == null ) {
+//            downloadManager.download( fileitem.objid, fileitem.filetype, fileitem.filelocid, fileitem.filesize, filehandler );         
+//        } else {
+//            downloadManager.fileHandlers.add( fileitem.objid, filehandler ); 
+//        }
         return null; 
     } 
     
@@ -111,6 +122,9 @@ public class FileItemOpenModel  {
     void loadImage() { 
         if ( fileloctype == 'file' ) {
             loadImageFromFileLoc(); 
+        }
+        else if ( downloadItem ) {
+            image = downloadItem.content; 
         }
         else { 
             def imageURL = images.get( fileitem.objid );

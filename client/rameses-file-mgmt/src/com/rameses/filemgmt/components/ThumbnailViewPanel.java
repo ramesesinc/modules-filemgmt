@@ -345,7 +345,7 @@ public class ThumbnailViewPanel extends XPanel {
             Object thumbnailObj = tvm.getThumbnail( item ); 
             if ( thumbnailObj instanceof String ) {
                 if ( base64.isEncoded( thumbnailObj.toString() )) {
-                    thumbnailObj = base64.decode(thumbnailObj.toString() ); 
+                    thumbnailObj = base64.decode(thumbnailObj.toString(), false ); 
                 } else {
                     thumbnailObj = null; 
                 }

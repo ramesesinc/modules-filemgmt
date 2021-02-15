@@ -159,7 +159,9 @@ public final class FileUploadManager {
     public void schedule( FileUploadItem fui ) { 
         synchronized ( CACHE_LOCKED ) {
             if ( fui == null ) return; 
-            if ( !isEnabled() ) return; 
+            
+            if ( fui.isImmediate()) {}
+            else if ( !isEnabled() ) return; 
 
             FileUploadItemProc proc = null;
             String keyname = fui.getName(); 
@@ -176,6 +178,8 @@ public final class FileUploadManager {
             if ( fui.isModeCompleted()) {
                 cache.remove( keyname ); 
                 getFileHandlers().unregister( fui ); 
+                fui.remove(); 
+                return;           
             }
 
             proc = fui.createProcessHandler(); 
