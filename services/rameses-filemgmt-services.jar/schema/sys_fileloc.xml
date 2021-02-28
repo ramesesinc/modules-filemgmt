@@ -1,4 +1,4 @@
-<schema adapter="filemgmt">
+<schema>
 	<element  tablename="sys_fileloc">
 		<field name="objid" primary="true" prefix="FILELOC"/>
 		<field name="url" required="true" />

@@ -1,4 +1,4 @@
-<schema adapter="filemgmt">
+<schema>
 	<element  tablename="sys_fileitem">
 		<field name="objid" primary="true" prefix="FILEITM"/>
 		<field name="parentid" required="true" />
