@@ -13,9 +13,9 @@ import java.util.Map;
  */
 public interface FileLocationProvider {
     
-    public List<Map> getLocations();
+    public List<Map> getLocations( String connection );
     
-    public Map getDefaultLocation();
+    public Map getDefaultLocation( String connection );
     
-    public Map getLocation( String locationId );
+    public Map getLocation( String connection, String locationId );
 }

@@ -49,6 +49,8 @@ public class FileItemOpenModel  {
     def downloadManager = com.rameses.filemgmt.FileDownloadManager.instance; 
     def downloadItem;
     
+    def connection;
+    
     def init() { 
         if ( eventMap != null ) { 
             // hook call back events
@@ -58,7 +60,7 @@ public class FileItemOpenModel  {
         loadingStatusMessage = 'Processing...';
         formTitle = 'Form Item Viewer ('+ fileitem.objid +')'; 
 
-        def fileloc = fileManager.getLocation( fileitem.filelocid ); 
+        def fileloc = fileManager.getLocation( fileitem.connection, fileitem.filelocid ); 
         if ( !fileloc ) {
             loadingStatusMessage = "'"+ fileitem.filelocid +"' file location config not found";
             return null; 
@@ -70,7 +72,7 @@ public class FileItemOpenModel  {
             return 'view'; 
         }
         
-        downloadItem = downloadManager.doBasicdownload( fileitem.objid, fileitem.filetype, fileitem.filesize, fileloc, filehandler ); 
+        downloadItem = downloadManager.doBasicdownload( fileitem.objid, fileitem.filetype, fileitem.filesize, fileloc, filehandler, fileitem.connection ); 
         
 //        def stat = downloadManager.getStatus( fileitem.objid ); 
 //        if ( stat == 'completed') {
@@ -107,7 +109,9 @@ public class FileItemOpenModel  {
     @Close 
     void closeForm() { 
         cancelled = true; 
-        eventMap.onchangeItem = null;
+        if ( eventMap ) { 
+            eventMap.onchangeItem = null;
+        }
         
         if ( fileloctype == 'file' ) {
             return ; 

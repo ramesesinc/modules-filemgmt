@@ -5,31 +5,31 @@ import com.rameses.filemgmt.FileLocationProvider;
 
 class FileLocationProviderImpl implements FileLocationProvider {
     
-    @Service('PersistenceService') 
-    def persistenceSvc; 
-    
-    @Service('QueryService') 
-    def qrySvc; 
-    
-    Map getDefaultLocation() {
+    @Service( dynamic = true )
+    def dynaSvc; 
+
+    Map getDefaultLocation( String connection ) {
         def m = [_schemaname: 'sys_fileloc', findBy: [defaultloc: 1]]; 
-        def o = persistenceSvc.read( m ); 
+        def svc = dynaSvc.lookup('PersistenceService', connection ); 
+        def o = svc.read( m ); 
         resolveData( o ); 
         return o; 
     }
 
-    Map getLocation( String locationId ) {
+    Map getLocation( String connection, String locationId ) {
         def m = [_schemaname: 'sys_fileloc', findBy: [objid: locationId]]; 
-        def o = persistenceSvc.read( m ); 
+        def svc = dynaSvc.lookup('PersistenceService', connection ); 
+        def o = svc.read( m ); 
         resolveData( o ); 
         return o; 
     }
     
-    public List getLocations() {
+    public List getLocations( String connection ) {
         def list = null; 
         try { 
             def m = [ _schemaname: 'sys_fileloc', where:[' 1=1 ']]; 
-            list = qrySvc.getList( m ); 
+            def svc = dynaSvc.lookup('QueryService', connection ); 
+            list = svc.getList( m ); 
         } catch(Throwable t) {
             list = []; 
         } 

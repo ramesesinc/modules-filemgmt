@@ -5,6 +5,7 @@
 package com.rameses.filemgmt;
 
 import com.rameses.io.FileLocTypeProvider;
+import com.rameses.osiris2.client.ManagedObjects;
 import com.rameses.util.Encoder;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -174,7 +175,6 @@ public final class FileManager {
             System.out.println("Starting FileManager...");
             helper.createSessionFile(); 
             scheduler.schedule(new SessionCheckProc(), 400, TimeUnit.MILLISECONDS);
-            scheduler.schedule(new FileLocationConfFetcher(), 500, TimeUnit.MILLISECONDS); 
             FileUploadManager.getInstance().start(); 
             FileDownloadManager.getInstance().start(); 
             started = true; 
@@ -220,10 +220,10 @@ public final class FileManager {
     
     
     public static interface DbProvider {
-        Map create( Map data );
-        Map save( Map data ); 
-        Map read( Map params ); 
-        Map remove( Map params );
+        Map create( Map data, String conn );
+        Map save( Map data, String conn ); 
+        Map read( Map params, String conn ); 
+        Map remove( Map params, String conn );
     } 
     
     private class SessionCheckProc implements RunProc { 
@@ -299,7 +299,7 @@ public final class FileManager {
             if ( cancelled ) return; 
             
             FileLocationProvider provider = root.getLocationProvider();
-            List<Map> list = (provider == null ? null : provider.getLocations()); 
+            List<Map> list = (provider == null ? null : provider.getLocations( null )); 
             if ( list != null ) {
                 for ( Map item : list ) { 
                     if ( cancelled ) break; 
@@ -460,16 +460,16 @@ public final class FileManager {
         }
     }
     
-    public FileLocationConf getDefaultLocation() {
-        Map data = getLocationProvider().getDefaultLocation(); 
+    public FileLocationConf getDefaultLocation( String connection ) {
+        Map data = getLocationProvider().getDefaultLocation( connection ); 
         if ( data == null || data.isEmpty()) 
             throw new RuntimeException("No active location config available"); 
         
         return new FileLocationConf( data ); 
     }
     
-    public FileLocationConf getLocation( String locationId ) {
-        Map data = getLocationProvider().getLocation( locationId ); 
+    public FileLocationConf getLocation( String connection, String locationId ) {
+        Map data = getLocationProvider().getLocation( connection, locationId ); 
         if ( data == null || data.isEmpty()) {
             return null; 
         } 

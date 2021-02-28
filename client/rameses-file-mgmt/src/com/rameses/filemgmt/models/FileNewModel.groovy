@@ -12,12 +12,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class FileNewModel  {
         
     def info = [:];
-    
-    def handler;    
+        
+    def handler; 
     def base64 = new Base64Cipher();
     def _entity = [ objid:'FILE'+ new java.rmi.server.UID(), info: [:]]; 
     
     def fileTypeProvider = com.rameses.filemgmt.FileManager.instance.fileTypeProvider; 
+    
+    def connection;
     
     def getFileTypes() {
         return fileTypeProvider.types; 
@@ -29,7 +31,7 @@ public class FileNewModel  {
     
     def doOk() {
         def fm = com.rameses.filemgmt.FileManager.instance;
-        def fileLocConf = fm.defaultLocation;
+        def fileLocConf = fm.getDefaultLocation( connection );
         if ( fileLocConf == null ) throw new Exception('Please provide a default location conf'); 
 
         def scaler = new ImageScaler();
@@ -66,7 +68,7 @@ public class FileNewModel  {
         
         def db = fm.getDbProvider(); 
         if ( db ) {
-            def o = db.create( entity ); 
+            def o = db.create( entity, connection ); 
             if ( o ) _entity.putAll( o ); 
         }
         
@@ -115,10 +117,7 @@ public class FileNewModel  {
         } else { 
             fileChooser.setFileFilter( new FileNameExtensionFilter( filetype.title, filetype.objid ));
         } 
-        
-        def locconf = com.rameses.filemgmt.FileManager.instance.defaultLocation;
-        if ( !locconf ) throw new Exception('No active location config available'); 
-        
+                
         def fum = com.rameses.filemgmt.FileUploadManager.instance; 
         def tempdir = fum.getTempDir(); 
         int opt = fileChooser.showOpenDialog( uploadHandler.binding?.owner ); 
@@ -129,6 +128,9 @@ public class FileNewModel  {
             } else {
                 files = [ fileChooser.getSelectedFile() ];  
             }
+            
+            def locconf = com.rameses.filemgmt.FileManager.instance.getDefaultLocation( connection ); 
+            if ( !locconf ) throw new Exception('No active location config available'); 
             
             files.each{ o-> 
                 fileIndexNo += 1; 
@@ -143,6 +145,7 @@ public class FileNewModel  {
                 item.caption = o.name; 
                 item.file = o;
                 item.immediate = true; 
+                item.connection = connection;
 
                 def folder = new java.io.File( tempdir, item.fileid ); 
                 def fui = com.rameses.filemgmt.FileUploadItem.create( folder, item ); 

@@ -141,7 +141,7 @@ public final class FileDownloadManager {
         }
     }   
     
-    public synchronized DownloadItem doBasicdownload( String fileid, String filetype, long filesize, FileLocationConf fileloc, FileDownloadHandler handler ) {
+    public synchronized DownloadItem doBasicdownload( String fileid, String filetype, long filesize, FileLocationConf fileloc, FileDownloadHandler handler, String conn ) {
         if ( fileid == null || fileid.trim().length() == 0 ) 
             throw new RuntimeException("fileid parameter is required"); 
         if ( fileloc == null ) 
@@ -149,6 +149,7 @@ public final class FileDownloadManager {
 
         DownloadItem di = new DownloadItem( fileid, filetype, filesize ); 
         di.basicDownloadProcess = new BasicDownloadProcess( di, fileloc, handler ); 
+        di.fileconn = conn;
         schedule( di ); 
         return di; 
     }
@@ -318,10 +319,11 @@ public final class FileDownloadManager {
     public class DownloadItem {
         
         FileDownloadManager root = FileDownloadManager.this; 
-        
+
         private String fileid; 
         private String filetype; 
         private String filelocid;
+        private String fileconn;
         private long filesize; 
         private File basedir;
         
@@ -675,7 +677,7 @@ public final class FileDownloadManager {
                 }
                 
                 String filelocid = item.getFileLocId();
-                FileLocationConf conf = fm.getLocation( filelocid ); 
+                FileLocationConf conf = fm.getLocation( item.fileconn, filelocid ); 
                 if ( conf == null ) 
                     throw new Exception(""+ filelocid +" file location conf does not exist"); 
                 
@@ -815,6 +817,7 @@ public final class FileDownloadManager {
                 //do nothing 
             } catch(Throwable t) {
                 System.out.println("[BasicDownloadProcess] ("+ fileid +") error caused by " + t.getMessage());
+                t.printStackTrace();
             } finally {
                 if ( cancelled ) return; 
             }

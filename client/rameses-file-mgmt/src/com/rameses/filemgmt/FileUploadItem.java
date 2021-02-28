@@ -47,6 +47,7 @@ public final class FileUploadItem implements FileItem {
     public final static String CONF_FILE_TYPE     = "filetype";
     public final static String CONF_FILE_ID       = "fileid";
     public final static String CONF_FILE_GROUP_ID = "filegroupid";
+    public final static String CONF_CONNECTION    = "connection";
     
     private File folder; 
     private ConfigFile confFile;  
@@ -649,7 +650,8 @@ public final class FileUploadItem implements FileItem {
 
             FileUploadManager fum = FileUploadManager.getInstance();
             String filelocid = conf.getProperty( CONF_FILE_LOC_ID ); 
-            FileLocationConf fileloc = FileManager.getInstance().getLocation( filelocid ); 
+            String connection = conf.getProperty( CONF_CONNECTION ); 
+            FileLocationConf fileloc = FileManager.getInstance().getLocation( connection, filelocid ); 
             if ( fileloc == null ) {
                 System.out.println("[ModeUploadProcess] '"+ filelocid +"' file location config not found for "+ root.getName()); 
                 return STAT_FILE_LOC_CONF_NOT_FOUND; 
@@ -728,8 +730,9 @@ public final class FileUploadItem implements FileItem {
         private void runImpl() throws Exception { 
             ConfigFile conf = root.getConfigFile().read(); 
             String filelocid = conf.getProperty( CONF_FILE_LOC_ID ); 
+            String connection = conf.getProperty( CONF_CONNECTION ); 
             FileUploadManager fum = FileUploadManager.getInstance();
-            FileLocationConf fileloc = FileManager.getInstance().getLocation( filelocid ); 
+            FileLocationConf fileloc = FileManager.getInstance().getLocation( connection, filelocid ); 
             if ( fileloc == null ) {
                 System.out.println("[ModeRemovalProcess] '"+ filelocid +"' file location config not found for "+ root.getName()); 
                 return; 

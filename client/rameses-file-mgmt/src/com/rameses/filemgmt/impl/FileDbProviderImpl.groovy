@@ -5,27 +5,33 @@ import com.rameses.filemgmt.FileManager;
 
 class FileDbProviderImpl implements FileManager.DbProvider {
     
+    @Service( dynamic = true ) 
+    def dynaSvc; 
+    
     @Service('FileUploadService') 
     def fileUploadSvc;
 
     @Service('SysFileService') 
     def fileSvc; 
 
-    Map create( Map data ) { 
-        return fileSvc.create( data );  
+    Map create( Map data, String conn ) { 
+        def svc = dynaSvc.lookup( 'SysFileService', conn ); 
+        return svc.create( data );  
     } 
 
-    Map save( Map o ) { 
-        return fileUploadSvc.upload( o ); 
+    Map save( Map data, String conn ) { 
+        def svc = dynaSvc.lookup( 'FileUploadService', conn ); 
+        return svc.upload( data ); 
     } 
 
-    Map read( Map params ) {
+    Map read( Map params, String conn ) {
         def m = [ objid: params.objid ]; 
-        return fileSvc.read( m ); 
+        def svc = dynaSvc.lookup( 'SysFileService', conn ); 
+        return svc.read( m ); 
     } 
 
-    Map remove( Map params ) { 
-        return fileSvc.remove( params ); 
+    Map remove( Map params, String conn ) { 
+        def svc = dynaSvc.lookup( 'SysFileService', conn ); 
+        return svc.remove( params ); 
     }
-
 }

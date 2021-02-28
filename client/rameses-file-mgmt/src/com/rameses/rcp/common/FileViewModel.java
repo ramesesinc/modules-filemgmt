@@ -26,8 +26,10 @@ public class FileViewModel {
     private Number cellHeight;
     private Number cellSpacing;
     
+    private String connection;
+    
     public final Map eventMap = new HashMap();
-
+    
     public boolean isEditable() { return editable; } 
     public void setEditable( boolean editable ) {
         this.editable = editable; 
@@ -62,6 +64,11 @@ public class FileViewModel {
     public void setCellHeight( Number cellHeight ) {
         this.cellHeight = cellHeight; 
     }
+    
+    public String getConnection() { return connection; } 
+    public void setConnection( String connection ) {
+        this.connection = connection; 
+    }
         
     public List fetchList( Map params ) { 
         return null; 
@@ -76,7 +83,7 @@ public class FileViewModel {
     
     public Object getItem( Map params ) { 
         DbProvider dbp = FileManager.getInstance().getDbProvider(); 
-        return ( dbp == null ? null : dbp.read(params)); 
+        return ( dbp == null ? null : dbp.read( params, getConnection() )); 
     } 
     
     public Object createItem() {
@@ -127,7 +134,7 @@ public class FileViewModel {
         if ( !b ) return false; 
         
         DbProvider dbp = FileManager.getInstance().getDbProvider(); 
-        if ( dbp != null ) dbp.remove((Map) item); 
+        if ( dbp != null ) dbp.remove((Map) item, getConnection() ); 
         
         return true; 
     }
