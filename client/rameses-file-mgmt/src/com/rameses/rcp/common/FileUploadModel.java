@@ -43,11 +43,14 @@ public class FileUploadModel {
 
     public void afterRemoveItem() {
     }
+    public void providerChanged( Object provider ){
+    }
     
 
     private Provider provider; 
     public void setProvider( Provider provider ) { 
         this.provider = provider; 
+        providerChanged( provider ); 
     } 
     public static interface Provider { 
         Binding getBinding(); 

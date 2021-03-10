@@ -1,0 +1,10 @@
+<workunit>
+    <invokers>
+        <invoker type="sys_fileupload_task" target="popup"
+                 caption="File Upload Task" action="init" />
+    </invokers>
+    <code class="com.rameses.filemgmt.models.FileUploadTaskModel" />
+    <pages>
+        <page template="com.rameses.filemgmt.views.FileUploadTaskPage" /> 
+    </pages>
+</workunit>
