@@ -18,14 +18,21 @@ public class SingleFileUploadModel {
     }
     
     public def upload() { 
+        return upload( null ); 
+    }
+    
+    public def upload( param ) { 
         def result = null; 
-        def param = [:]; 
-        param.connection = getConnection();
-        param.handler = { o-> 
+        def map = [:]; 
+        map.param = param; 
+        map.connection = getConnection();
+        map.handler = { o-> 
             o.remove('items'); 
             result = o; 
         }
-        Modal.show("sys_file:create", param ); 
+        
+        Modal.show("sys_file:create", map ); 
+
         if ( result ) {
             afterUpload( result ); 
         } else {

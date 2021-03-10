@@ -20,7 +20,8 @@ public class FileNewModel  {
     def fileTypeProvider = com.rameses.filemgmt.FileManager.instance.fileTypeProvider; 
     
     def connection;
-    
+    def param;
+
     def getFileTypes() {
         return fileTypeProvider.types; 
     } 
@@ -38,7 +39,7 @@ public class FileNewModel  {
         def items = uploadHandler.getItems(); 
         if ( items.find{( it.completed == false )} ) 
             throw new Exception('Wait until all items were uploaded'); 
-            
+
         entity.items = []; 
         items.each{ o-> 
             def data = o.data; 
@@ -65,6 +66,7 @@ public class FileNewModel  {
             entity.items << m; 
         } 
         entity.info = info; 
+        entity.param = param;
         
         def db = fm.getDbProvider(); 
         if ( db ) {
