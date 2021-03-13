@@ -455,7 +455,7 @@ public final class FileUploadItem implements FileItem {
                 if ( isCancelled() ) { 
                     throw new InterruptedException();
                 } 
-
+                System.out.println("ModeReadyProcess... ");
                 root.createTempFile(".started"); 
                 root.removeTempFile(".ready"); 
                 completed = success = true; 
@@ -486,7 +486,7 @@ public final class FileUploadItem implements FileItem {
                     if ( isCancelled() ) { 
                         throw new InterruptedException();
                     } 
-                    
+                    System.out.println("ModeTempCopyProcess... ");
                     String status = runImpl(); 
                     if ( "no_file_source".equals( status)) { 
                         message = "no source file specified in the conf";
@@ -591,7 +591,7 @@ public final class FileUploadItem implements FileItem {
                     if ( isCancelled() ) { 
                         throw new InterruptedException();
                     } 
-                    
+                    System.out.println("ModeUploadProcess...");
                     int stat = runImpl(); 
                     if ( stat == STAT_SUCCESS ) {
                         message = "success";
@@ -651,18 +651,19 @@ public final class FileUploadItem implements FileItem {
             FileUploadManager fum = FileUploadManager.getInstance();
             String filelocid = conf.getProperty( CONF_FILE_LOC_ID ); 
             String connection = conf.getProperty( CONF_CONNECTION ); 
+            System.out.println("getLocation( "+ connection +", "+ filelocid +")...");
             FileLocationConf fileloc = FileManager.getInstance().getLocation( connection, filelocid ); 
             if ( fileloc == null ) {
                 System.out.println("[ModeUploadProcess] '"+ filelocid +"' file location config not found for "+ root.getName()); 
                 return STAT_FILE_LOC_CONF_NOT_FOUND; 
             }
-            
+            System.out.println("fileloc -> "+ fileloc);
             FileLocTypeProvider loctype = fum.getLocType( fileloc.getType() ); 
             if ( loctype == null ) {
                 System.out.println("[ModeUploadProcess] '"+ fileloc.getType() +"' file location type not found for "+ root.getName()); 
                 return STAT_FILE_LOC_TYPE_NOT_FOUND; 
             }
-            
+            System.out.println("loctype -> "+ loctype);
             Object oloctype = loctype; 
             if ( oloctype instanceof FileLocationRegistry ) { 
                 ((FileLocationRegistry) oloctype).register( fileloc ); 
@@ -675,6 +676,7 @@ public final class FileUploadItem implements FileItem {
                 sb.append(".").append( filetype.trim()); 
             }
             
+            System.out.println("createUploadSession...");
             sess = loctype.createUploadSession(); 
             sess.setFile( root.getContentFile().getFile() ); 
             sess.setLocationConfigId( filelocid );
@@ -683,8 +685,11 @@ public final class FileUploadItem implements FileItem {
             
             TransferHandler th = new TransferHandler(); 
             th.proc = this; 
+            System.out.println("attach transfer stream handler");
             sess.setHandler( th ); 
+            System.out.println("begin upload...");
             sess.run(); 
+            System.out.println("end upload...");
             return STAT_SUCCESS; 
         } 
         
@@ -781,7 +786,7 @@ public final class FileUploadItem implements FileItem {
                 proc.cancel();
                 return; 
             }
-            
+            System.out.println("TransferHandler.ontransfer ("+ filesize +", "+ bytesprocessed +")...");
             StatusFile sf = root.getContentFile().getStatusFile().read(); 
             sf.setPos( bytesprocessed );
             sf.update(); 
@@ -790,6 +795,7 @@ public final class FileUploadItem implements FileItem {
         }
 
         public void oncomplete() { 
+            System.out.println("TransferHandler.oncomplete");
             root.getContentFile().getStatusFile().changeMode( MODE_COMPLETED ); 
             FileUploadManager.getInstance().getFileHandlers().unregister( root ); 
         } 

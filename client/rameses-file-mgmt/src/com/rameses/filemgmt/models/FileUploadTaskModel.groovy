@@ -62,6 +62,9 @@ public class FileUploadTaskModel  {
         def tempdir = fum.getTempDir(); 
         int fileIndexNo = 0; 
         
+        println '\n*****'
+        println 'tempdir -> '+ tempdir;
+        
         files.each{ o-> 
             fileIndexNo += 1; 
             
@@ -82,8 +85,9 @@ public class FileUploadTaskModel  {
             def fui = com.rameses.filemgmt.FileUploadItem.create( folder, item ); 
             uploadHandler.add( fui, item.caption, item.filesize, item ); 
             item.uploaditem = fui;
+            println 'scheduling '+ item.caption +' using temp folder '+ folder.absolutePath; 
             fum.schedule( fui ); 
-        }         
+        } 
     }
     
     
