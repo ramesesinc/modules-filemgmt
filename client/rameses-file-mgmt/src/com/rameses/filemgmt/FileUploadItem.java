@@ -36,7 +36,6 @@ public final class FileUploadItem implements FileItem {
         return fui; 
     }
     
-    
     public final static String MODE_TEMP_COPY = "TEMP";
     public final static String MODE_UPLOAD    = "UPLOAD";
     public final static String MODE_COMPLETED = "COMPLETED";

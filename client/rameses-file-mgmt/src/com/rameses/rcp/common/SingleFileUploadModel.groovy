@@ -127,4 +127,11 @@ public class SingleFileUploadModel {
         Modal.show('sys_fileitem:open', m ); 
     }
     
+    public def remove( Map param ) {
+        if ( !param.objid ) throw new Exception('objid parameter is required'); 
+        
+        def dbProvider = com.rameses.filemgmt.FileManager.instance.dbProvider; 
+        return dbProvider.remove([ objid: param.objid ], getConnection()); 
+    }
+    
 }
