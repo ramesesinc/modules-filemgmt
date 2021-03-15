@@ -49,7 +49,7 @@ public class SingleFileUploadModel {
         files.each{ o-> 
             if ( o instanceof java.io.File ) {
                 if ( !filetype ) {
-                    def sname = file.name.toString().toLowerCase(); 
+                    def sname = o.name.toString().toLowerCase(); 
                     int idx = sname.lastIndexOf('.'); 
                     if ( idx > 0 ) { 
                         filetype = sname.substring( idx+1 ); 
