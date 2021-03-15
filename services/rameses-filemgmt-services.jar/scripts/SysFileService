@@ -52,8 +52,20 @@ class SysFileService {
 	@ProxyMethod 
 	public def remove( param ) {
 		def fileid = param.objid.toString();
-		fileitem_db.find([ parentid: fileid ]).delete();
-		file_db.find([ objid: fileid ]).delete();
-		return [objid: fileid, status:'success'];
+		def o = file_db.find([ objid: fileid ]).select('objid,filetype').first(); 
+		if ( o?.objid ) {
+			def res = [ objid: o.objid, items: []]; 
+			fileitem_db.find([ parentid: fileid ]).select('objid,filelocid').list().each{
+				it.fileloc = fileloc_db.find([ objid: it.filelocid ]).first(); 
+				it.filetype = o.filetype; 
+				res.items << it; 
+			}
+
+			fileitem_db.find([ parentid: fileid ]).delete();
+			file_db.find([ objid: fileid ]).delete();
+			res.status = 'success';
+			return res; 
+		}
+		return [status: 'not-found'];
 	}
 }
