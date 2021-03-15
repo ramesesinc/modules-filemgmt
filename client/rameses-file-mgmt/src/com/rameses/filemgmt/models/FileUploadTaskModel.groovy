@@ -103,9 +103,11 @@ public class FileUploadTaskModel  {
         def scaler = new ImageScaler();
 
         entity.param = param; 
-        entity.title = param.caption; 
         if ( !entity.title ) {
-            entity.title = com.rameses.util.Encoder.MD5.encode( entity.objid ); 
+            entity.title = param.caption; 
+            if ( !entity.title ) {
+                entity.title = com.rameses.util.Encoder.MD5.encode( entity.objid ); 
+            }
         }
         
         entity.items = []; 

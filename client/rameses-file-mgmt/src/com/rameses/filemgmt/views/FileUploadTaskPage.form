@@ -77,6 +77,9 @@
               </Border>
             </Property>
             <Property name="captionWidth" type="int" value="120"/>
+            <Property name="padding" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+              <Insets value="[0, 0, 5, 5]"/>
+            </Property>
             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[10, 70]"/>
             </Property>

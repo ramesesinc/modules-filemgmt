@@ -57,6 +57,7 @@ public class FileUploadTaskPage extends javax.swing.JPanel {
 
         xFormPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 50, 1));
         xFormPanel1.setCaptionWidth(120);
+        xFormPanel1.setPadding(new java.awt.Insets(0, 0, 5, 5));
         xFormPanel1.setPreferredSize(new java.awt.Dimension(10, 70));
 
         xTextField1.setCaption("Title");
